@@ -12,6 +12,8 @@ class Expression:
     def exec(self, ctx):
         if self.tokens[0].value in ctx.functions:
             function = ctx.functions[self.tokens[0].value]
+        elif Value.get(self.tokens[0]).value(ctx) in ctx.functions:
+            function = ctx.functions[Value.get(self.tokens[0]).value(ctx)]
         else:
             rich.print(f"[bold red]ERROR[/]")
             rich.print(f"   Undefined function: {self.tokens[0].value}")
