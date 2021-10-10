@@ -1,3 +1,6 @@
+import rich
+import sys
+
 CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
 DIGITS = '0123456789.'
 
@@ -27,10 +30,16 @@ class Lexer:
     def __init__(self, text):
         self.text = text+'\n'
         self.i = -1
+        self.row = 0
+        self.column = 0
         self.advance()
     def advance(self):
         self.i += 1
         self.char = self.text[self.i]
+        self.column += 1
+        if self.char == '\n':
+            self.row += 1
+            self.column = 0
     def reverse(self):
         self.i -= 1
         self.char = self.text[self.i]
@@ -83,6 +92,17 @@ class Lexer:
 
             elif self.char == ';':
                 self.tokens.append(Break())
+
+            elif self.char in ' \n':
+                pass
+
+            else:
+                rich.print(f"[bold red]ERROR[/] on [red](line {self.row}, character {self.column}):")
+                rich.print(f"   Invalid character: {self.char}")
+                error_line = self.text.split('\n')[self.row]
+                rich.print(f"      [white on #4a4a4a]{error_line}[/]")
+                rich.print("    "+" "*self.column+"[red]^[/]")
+                sys.exit(1)
 
             if self.i+1 >= len(self.text):
                 break

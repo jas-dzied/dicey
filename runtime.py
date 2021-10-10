@@ -1,4 +1,5 @@
 import rich
+import sys
 from lexer import Op, StringLiteral, IntLiteral, FloatLiteral, Ident
 
 class Expression:
@@ -9,7 +10,12 @@ class Expression:
     def add(self, item):
         self.tokens.append(item)
     def exec(self, ctx):
-        function = ctx.functions[self.tokens[0].value]
+        if self.tokens[0].value in ctx.functions:
+            function = ctx.functions[self.tokens[0].value]
+        else:
+            rich.print(f"[bold red]ERROR[/]")
+            rich.print(f"   Undefined function: {self.tokens[0].value}")
+            sys.exit(1)
         args = [Value.get(token) for token in self.tokens[1:]]
         return function(ctx, *args)
 

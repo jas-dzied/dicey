@@ -1,0 +1,11 @@
+[
+  print "Pick a number: ";
+  set "counter" (cast "Integer" (input));
+  set "total" 1;
+  while (notequal counter 0) [
+        set "total" (times total counter);
+        set "counter" (subtract counter 1);
+  ];
+  print "Your number factorial is: ";
+  println total;
+]
