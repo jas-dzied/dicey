@@ -233,10 +233,18 @@ class STD:
             return lst.exec(ctx)[op1.exec(ctx):op3.exec(ctx)]
         elif op2 == Token(':'):
             return lst.exec(ctx)[op1.exec(ctx):]
+
     def _eval_py_(ctx, code):
         return eval(code.exec(ctx), ctx.python_runtime)
     def _exec_py_(ctx, code):
         return exec(code.exec(ctx), ctx.python_runtime)
+
+    def _assert_(ctx, condition):
+        if condition.exec(ctx) == False:
+            rich.print(f"[bold red]ASSERT FAILED[/]")
+            rich.print(f"   {condition}")
+
+
 
 def run(tokens):
 

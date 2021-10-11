@@ -1,0 +1,6 @@
+[
+    assert (equal (add 1 2) 3);
+    assert (equal (subtract 11 4) 7);
+    assert (equal (times 3 7) 21);
+    assert (equal (divide 12 4) 3);
+]

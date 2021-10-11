@@ -1,5 +1,4 @@
 [
-    exec_py "import math";
-    set "python_val" (eval_py "math.sin(43)");
-    println python_val;
+    exec_py "import os";
+    exec_py "os.system('roll_new.py 4d6')";
 ]
