@@ -2,9 +2,9 @@
 
 import lexer
 import runtime
+import sys
 
-import rich
-
-with open('test.dice', 'r') as file:
+with open(sys.argv[1], 'r') as file:
     tokens = lexer.Lexer(file.read()).lex()
 runtime.run(tokens)
+

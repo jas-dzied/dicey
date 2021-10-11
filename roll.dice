@@ -1,0 +1,4 @@
+[
+    set "toolongstring" "AA cool string!!";
+    println (range toolongstring 1:-1);
+]

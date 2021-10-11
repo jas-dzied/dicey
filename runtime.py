@@ -1,6 +1,9 @@
 import rich
 import sys
-from lexer import Op, StringLiteral, IntLiteral, FloatLiteral, Ident
+from lexer import Op, Token, StringLiteral, IntLiteral, FloatLiteral, Ident
+import random
+
+randgen = random.SystemRandom()
 
 class Expression:
     def __init__(self, tokens):
@@ -124,12 +127,18 @@ class Boolean(Value):
 class Variable(Value):
     def exec(self, ctx):
         return ctx.variables[self.data]
+class List(Value):
+    into=list
+    def exec(self, ctx):
+        return self.data
 
 class Context:
-    def __init__(self, variables, functions, types):
+    def __init__(self, variables, functions, types, dice_rolls, dice_count):
         self.variables = variables
         self.functions = functions
         self.types = types
+        self.dice_rolls = dice_rolls
+        self.dice_count = dice_count
     def default():
         return Context(
             {
@@ -143,8 +152,11 @@ class Context:
                 Float,
                 String,
                 Boolean,
-                Variable
-            ]}
+                Variable,
+                List
+            ]},
+            [],
+            1
         )
 
 class STD:
@@ -176,6 +188,9 @@ class STD:
     def _divide_(ctx, a, b):
         return a.exec(ctx)/b.exec(ctx)
 
+    def _neg_(ctx, a):
+        return -1*a.exec(ctx)
+
     def _if_(ctx, condition, actions, else_block=Block([])):
         if condition.exec(ctx):
             actions.exec(ctx)
@@ -184,6 +199,38 @@ class STD:
     def _while_(ctx, condition, actions):
         while condition.exec(ctx):
             actions.exec(ctx)
+
+    def _dice_(ctx, amount, sides):
+        ctx.dice_rolls.append(sides.exec(ctx))
+        ctx.dice_count *= amount.exec(ctx)
+    def _roll_(ctx):
+        global randgen
+        results = []
+        for _ in range(ctx.dice_count):
+            results.append([randgen.randint(1, sides) for sides in ctx.dice_rolls])
+        return results
+
+    def _list_(ctx, *items):
+        return [item.exec(ctx) for item in items]
+    def _push_(ctx, lst, item, at=None):
+        if at is None:
+            lst.exec(ctx).append(item.exec(ctx))
+        else:
+            lst.exec(ctx).insert(at.exec(ctx), item.exec(ctx))
+    def _pop_(ctx, lst, at=None):
+        if at is None:
+            return lst.exec(ctx).pop()
+        else:
+            return lst.exec(ctx).pop(at.exec(ctx))
+    def _index_(ctx, lst, at):
+        return lst.exec(ctx)[at.exec(ctx)]
+    def _range_(ctx, lst, op1=None, op2=None, op3=None):
+        if op1 == Token(':'):
+            return lst.exec(ctx)[:op2.exec(ctx)]
+        elif op2 == Token(':') and op3 is not None:
+            return lst.exec(ctx)[op1.exec(ctx):op3.exec(ctx)]
+        elif op2 == Token(':'):
+            return lst.exec(ctx)[op1.exec(ctx):]
 
 
 def run(tokens):

@@ -2,9 +2,9 @@ import rich
 import sys
 
 CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
-DIGITS = '0123456789.'
+DIGITS = '0123456789.-'
 
-BINARY_OPS = '+-*/'
+BINARY_OPS = '+-*/:'
 OTHER_OPS = '()[]{}'
 
 class Token:
@@ -12,6 +12,10 @@ class Token:
         self.value = value
     def __repr__(self):
         return f'({self.__class__.__name__}:{repr(self.value)})'
+    def exec(self, ctx):
+        return self
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.value == other.value
 
 class IntLiteral(Token):
     pass
@@ -78,10 +82,7 @@ class Lexer:
 
         while True:
 
-            if self.char in BINARY_OPS+OTHER_OPS:
-                self.tokens.append(Op(self.char))
-
-            elif self.char in DIGITS:
+            if self.char in DIGITS:
                 self.make_number()
 
             elif self.char in CHARS:
@@ -97,12 +98,13 @@ class Lexer:
                 pass
 
             else:
-                rich.print(f"[bold red]ERROR[/] on [red](line {self.row}, character {self.column}):")
-                rich.print(f"   Invalid character: {self.char}")
-                error_line = self.text.split('\n')[self.row]
-                rich.print(f"      [white on #4a4a4a]{error_line}[/]")
-                rich.print("    "+" "*self.column+"[red]^[/]")
-                sys.exit(1)
+                self.tokens.append(Token(self.char))
+                #rich.print(f"[bold red]ERROR[/] on [red](line {self.row}, character {self.column}):")
+                #rich.print(f"   Invalid character: {self.char}")
+                #error_line = self.text.split('\n')[self.row]
+                #rich.print(f"      [white on #4a4a4a]{error_line}[/]")
+                #rich.print("    "+" "*self.column+"[red]^[/]")
+                #sys.exit(1)
 
             if self.i+1 >= len(self.text):
                 break
