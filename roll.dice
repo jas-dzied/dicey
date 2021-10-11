@@ -1,4 +1,5 @@
 [
-    set "toolongstring" "AA cool string!!";
-    println (range toolongstring 1:-1);
+    exec_py "import math";
+    set "python_val" (eval_py "math.sin(43)");
+    println python_val;
 ]

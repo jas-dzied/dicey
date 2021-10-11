@@ -133,12 +133,13 @@ class List(Value):
         return self.data
 
 class Context:
-    def __init__(self, variables, functions, types, dice_rolls, dice_count):
+    def __init__(self, variables, functions, types, dice_rolls, dice_count, python_runtime):
         self.variables = variables
         self.functions = functions
         self.types = types
         self.dice_rolls = dice_rolls
         self.dice_count = dice_count
+        self.python_runtime = python_runtime
     def default():
         return Context(
             {
@@ -156,7 +157,8 @@ class Context:
                 List
             ]},
             [],
-            1
+            1,
+            {}
         )
 
 class STD:
@@ -231,7 +233,10 @@ class STD:
             return lst.exec(ctx)[op1.exec(ctx):op3.exec(ctx)]
         elif op2 == Token(':'):
             return lst.exec(ctx)[op1.exec(ctx):]
-
+    def _eval_py_(ctx, code):
+        return eval(code.exec(ctx), ctx.python_runtime)
+    def _exec_py_(ctx, code):
+        return exec(code.exec(ctx), ctx.python_runtime)
 
 def run(tokens):
 
