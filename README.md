@@ -1,3 +1,2 @@
 # dicey
-
-CLI usage has not been implemented yet.
+use `dicey [file name]`
