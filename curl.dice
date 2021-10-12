@@ -1,0 +1,4 @@
+[
+    define "curl_setup" (exec_py "import requests");
+    define "curl_get" (eval_py (join_strs "requests.get('" url "').text")) "url";
+]

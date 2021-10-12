@@ -1,0 +1,4 @@
+[
+    define "testfunc" (println a) "a";
+    testfunc "Hello!";
+]

@@ -1,6 +1,7 @@
 import rich
 import sys
 from lexer import Op, Token, StringLiteral, IntLiteral, FloatLiteral, Ident
+import lexer
 import random
 
 randgen = random.SystemRandom()
@@ -22,7 +23,7 @@ class Expression:
             rich.print(f"   Undefined function: {self.tokens[0].value}")
             sys.exit(1)
         args = [Value.get(token) for token in self.tokens[1:]]
-        return function(ctx, *args)
+        return function.call(ctx, *args)
 
 class Block:
     def __init__(self, expressions):
@@ -147,7 +148,7 @@ class Context:
                 'true': Boolean(True),
                 'false': Boolean(False)
             },
-            {funcname[1:-1]: getattr(STD, funcname) for funcname in dir(STD)},
+            {funcname[1:-1]: Builtin(getattr(STD, funcname)) for funcname in dir(STD)},
             {cls.__name__: cls for cls in [
                 Integer,
                 Float,
@@ -161,6 +162,30 @@ class Context:
             {}
         )
 
+class Builtin:
+    def __init__(self, func):
+        self.func = func
+    def call(self, ctx, *args):
+        return self.func(ctx, *args)
+
+class Custom:
+    def __init__(self, tokens, args):
+        self.tokens = tokens
+        self.args = args
+    def call(self, ctx, *args):
+        ctx_vars = ctx.variables
+
+        enclosed_variables = {}
+        for (argname, argval) in zip(self.args, [arg.exec(ctx) for arg in args]):
+            enclosed_variables[argname] = argval
+        ctx.variables = enclosed_variables
+
+        result = self.tokens.exec(ctx)
+
+        ctx.variables = ctx_vars
+        return result
+
+
 class STD:
     def _println_(ctx, *args):
         print(*[arg.exec(ctx) for arg in args])
@@ -172,9 +197,15 @@ class STD:
         ctx.variables[name.exec(ctx)] = value.exec(ctx)
     def _get_(ctx, name):
         return ctx.variables[name.exec(ctx)]
+    def _val_(ctx, a):
+        return a.exec(ctx)
     def _cast_(ctx, target, value):
         casting_func = ctx.types[target.exec(ctx)].into
         return casting_func(value.exec(ctx))
+    def _join_strs_(ctx, *strings):
+        return "".join([string.exec(ctx) for string in strings])
+    def _join_(ctx, delim, lst):
+        return delim.join(lst.exec(ctx))
 
     def _equal_(ctx, a, b):
         return a.exec(ctx) == b.exec(ctx)
@@ -244,10 +275,19 @@ class STD:
             rich.print(f"[bold red]ASSERT FAILED[/]")
             rich.print(f"   {condition}")
 
-
+    def _define_(ctx, name, tokens, *args):
+        ctx.functions[name.exec(ctx)] = Custom(tokens, [arg.exec(ctx) for arg in args])
+    def _lib_(ctx, libfile):
+        post_ctx = run_file(libfile.exec(ctx)).functions
+        ctx.functions = ctx.functions | post_ctx
 
 def run(tokens):
-
     tree = generate_tree(tokens)
     ctx = Context.default()
     tree.exec(ctx)
+    return ctx
+
+def run_file(fname):
+    with open(fname, 'r') as file:
+        tokens = lexer.Lexer(file.read()).lex()
+    return run(tokens)

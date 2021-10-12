@@ -1,0 +1,6 @@
+[
+    lib "./curl.dice";
+
+    curl_setup;
+    println (curl_get "https://httpbin.org/get");
+]

@@ -4,7 +4,4 @@ import lexer
 import runtime
 import sys
 
-with open(sys.argv[1], 'r') as file:
-    tokens = lexer.Lexer(file.read()).lex()
-runtime.run(tokens)
-
+runtime.run_file(sys.argv[1])
