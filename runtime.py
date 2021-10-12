@@ -33,8 +33,10 @@ class Block:
     def add(self, item):
         self.expressions.append(item)
     def exec(self, ctx):
+        ctx.return_value = None
         for expr in self.expressions:
             expr.exec(ctx)
+        return ctx.return_value
 
 def generate_tree(tokens, result_type=Expression):
     if tokens[0].value == '[':
@@ -134,13 +136,14 @@ class List(Value):
         return self.data
 
 class Context:
-    def __init__(self, variables, functions, types, dice_rolls, dice_count, python_runtime):
+    def __init__(self, variables, functions, types, dice_rolls, dice_count, python_runtime, return_value):
         self.variables = variables
         self.functions = functions
         self.types = types
         self.dice_rolls = dice_rolls
         self.dice_count = dice_count
         self.python_runtime = python_runtime
+        self.return_value = return_value
     def default():
         return Context(
             {
@@ -159,7 +162,8 @@ class Context:
             ]},
             [],
             1,
-            {}
+            {},
+            None
         )
 
 class Builtin:
@@ -220,6 +224,9 @@ class STD:
         return a.exec(ctx)*b.exec(ctx)
     def _divide_(ctx, a, b):
         return a.exec(ctx)/b.exec(ctx)
+
+    def _return_(ctx, value):
+        ctx.return_value = value.exec(ctx)
 
     def _neg_(ctx, a):
         return -1*a.exec(ctx)
